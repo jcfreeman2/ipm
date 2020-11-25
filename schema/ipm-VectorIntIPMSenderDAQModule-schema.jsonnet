@@ -8,11 +8,11 @@
 local moo = import "moo.jsonnet";
 
 // A schema builder in the given path (namespace)
-local ns = "dunedaq.ipm.viis";
+local ns = "dunedaq.ipm.vectorintipmsenderdaqmodule";
 local s = moo.oschema.schema(ns);
 
 // Object structure used by the test/fake producer module
-local viis = {
+local types = {
     size_t_attempt: s.number("Size_t", "u8",
                      doc="Same as a size_t in gcc v8.2.0"),
 
@@ -33,5 +33,5 @@ local viis = {
 
 };
 
-moo.oschema.sort_select(viis, ns)
+moo.oschema.sort_select(types, ns)
 
