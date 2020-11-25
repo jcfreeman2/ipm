@@ -17,7 +17,7 @@
 #include "appfwk/ThreadHelper.hpp"
 #include "ipm/Sender.hpp"
 
-#include "ipm/viis/Structs.hpp"
+#include "ipm/vectorintipmsenderdaqmodule/Structs.hpp"
 
 #include <ers/Issue.h>
 
@@ -64,7 +64,7 @@ private:
 
   // Configuration (for validation)
 
-  viis::Conf cfg_;
+  vectorintipmsenderdaqmodule::Conf cfg_;
   size_t nIntsPerVector_ = 999;
   std::chrono::milliseconds queueTimeout_;
   std::unique_ptr<appfwk::DAQSource<std::vector<int>>> inputQueue_;
