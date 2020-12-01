@@ -7,7 +7,7 @@ The IPM library provides the low-level library for for sending messages between 
 _JCF, Nov-25-2020: In order to build from the current head of develop,
 you'll need to set up the "zmq v4_3_1 -q e19" ups product, which is
 not available in the standard DUNE DAQ ups area,
-/cvmfs/dune.opensciencegrid.org/dunedaq/DUNE/products. How to modify
+/cvmfs/dune.opensciencegrid.org/dunedaq/DUNE/products but rather in /cvmfs/dune.opensciencegrid.org/dunedaq/DUNE/products_dev. How to modify
 your work area so it automatically sets up a not-yet-standard ups
 product is described in the "Adding extra UPS products and product
 pools" section of
