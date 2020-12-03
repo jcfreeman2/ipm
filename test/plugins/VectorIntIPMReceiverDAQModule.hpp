@@ -16,7 +16,7 @@
 #include "appfwk/ThreadHelper.hpp"
 #include "ipm/Receiver.hpp"
 
-#include "ipm/viir/Structs.hpp"
+#include "ipm/vectorintipmreceiverdaqmodule/Structs.hpp"
 
 #include <future>
 #include <memory>
@@ -60,7 +60,7 @@ private:
   void do_work(std::atomic<bool>& running_flag);
 
   // Configuration
-  viir::Conf cfg_;
+  vectorintipmreceiverdaqmodule::Conf cfg_;
   std::shared_ptr<Receiver> input_;
   std::unique_ptr<appfwk::DAQSink<std::vector<int>>> outputQueue_;
   std::chrono::milliseconds queueTimeout_;

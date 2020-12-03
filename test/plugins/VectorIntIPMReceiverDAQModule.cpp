@@ -10,7 +10,7 @@
 #include "VectorIntIPMReceiverDAQModule.hpp"
 
 #include "appfwk/cmd/Nljs.hpp"
-#include "ipm/viir/Nljs.hpp"
+#include "ipm/vectorintipmreceiverdaqmodule/Nljs.hpp"
 
 #include <chrono>
 #include <string>
@@ -53,7 +53,7 @@ VectorIntIPMReceiverDAQModule::init(const data_t& init_data)
 void
 VectorIntIPMReceiverDAQModule::do_configure(const data_t& config_data)
 {
-  cfg_ = config_data.get<viir::Conf>();
+  cfg_ = config_data.get<vectorintipmreceiverdaqmodule::Conf>();
 
   nIntsPerVector_ = cfg_.nIntsPerVector;
   queueTimeout_ = static_cast<std::chrono::milliseconds>(cfg_.queue_timeout_ms);

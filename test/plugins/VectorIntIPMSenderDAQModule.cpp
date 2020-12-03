@@ -10,7 +10,7 @@
 #include "VectorIntIPMSenderDAQModule.hpp"
 
 #include "appfwk/cmd/Nljs.hpp"
-#include "ipm/viis/Nljs.hpp"
+#include "ipm/vectorintipmsenderdaqmodule/Nljs.hpp"
 
 #include "TRACE/trace.h"
 #include <ers/ers.h>
@@ -59,7 +59,7 @@ VectorIntIPMSenderDAQModule::init(const data_t& init_data)
 void
 VectorIntIPMSenderDAQModule::do_configure(const data_t& config_data)
 {
-cfg_ = config_data.get<viis::Conf>();
+cfg_ = config_data.get<vectorintipmsenderdaqmodule::Conf>();
 
   nIntsPerVector_ = cfg_.nIntsPerVector;
   queueTimeout_ = static_cast<std::chrono::milliseconds>(cfg_.queue_timeout_ms);
