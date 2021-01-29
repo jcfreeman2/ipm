@@ -10,7 +10,8 @@
 
 #define BOOST_TEST_MODULE ZmqReceiver_test // NOLINT
 
-#include <boost/test/unit_test.hpp>
+#include "boost/test/unit_test.hpp"
+
 #include <string>
 #include <vector>
 
@@ -20,9 +21,9 @@ BOOST_AUTO_TEST_SUITE(ZmqReceiver_test)
 
 BOOST_AUTO_TEST_CASE(BasicTests)
 {
-  auto theReceiver = makeIPMReceiver("ZmqReceiver");
-  BOOST_REQUIRE(theReceiver != nullptr);
-  BOOST_REQUIRE(!theReceiver->can_receive());
+  auto the_receiver = make_ipm_receiver("ZmqReceiver");
+  BOOST_REQUIRE(the_receiver != nullptr);
+  BOOST_REQUIRE(!the_receiver->can_receive());
 }
 
 BOOST_AUTO_TEST_SUITE_END()

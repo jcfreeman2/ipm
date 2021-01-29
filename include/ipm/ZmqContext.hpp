@@ -18,23 +18,21 @@ class ZmqContext
 public:
   static ZmqContext& instance()
   {
-    static ZmqContext ctx;
-    return ctx;
+    static ZmqContext s_ctx;
+    return s_ctx;
   }
 
-  zmq::context_t& GetContext() { return context_; }
-  private:
-  ZmqContext() {}
-    ~ZmqContext()
-    {
-      context_.close();
-    }
-    zmq::context_t context_;
+  zmq::context_t& GetContext() { return m_context; }
 
-    ZmqContext(ZmqContext const&) = delete;
-    ZmqContext(ZmqContext&&) = delete;
-    ZmqContext& operator=(ZmqContext const&) = delete;
-    ZmqContext& operator=(ZmqContext&&) = delete;
+private:
+  ZmqContext() {}
+  ~ZmqContext() { m_context.close(); }
+  zmq::context_t m_context;
+
+  ZmqContext(ZmqContext const&) = delete;
+  ZmqContext(ZmqContext&&) = delete;
+  ZmqContext& operator=(ZmqContext const&) = delete;
+  ZmqContext& operator=(ZmqContext&&) = delete;
 };
 } // namespace dunedaq::ipm
 

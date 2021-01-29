@@ -10,13 +10,13 @@
 #ifndef IPM_PLUGINS_ZMQSENDERIMPL_HPP_
 #define IPM_PLUGINS_ZMQSENDERIMPL_HPP_
 
-#include "TRACE/trace.h"
-
 #include "ipm/Sender.hpp"
 #include "ipm/ZmqContext.hpp"
 
+#include "TRACE/trace.h"
+#include "zmq.hpp"
+
 #include <string>
-#include <zmq.hpp>
 
 namespace dunedaq {
 namespace ipm {
@@ -30,21 +30,21 @@ public:
   };
 
   explicit ZmqSenderImpl(SenderType type)
-    : socket_(ZmqContext::instance().GetContext(),
-              type == SenderType::Push ? zmq::socket_type::push : zmq::socket_type::pub)
+    : m_socket(ZmqContext::instance().GetContext(),
+               type == SenderType::Push ? zmq::socket_type::push : zmq::socket_type::pub)
   {}
-  bool can_send() const noexcept override { return socket_connected_; }
+  bool can_send() const noexcept override { return m_socket_connected; }
   void connect_for_sends(const nlohmann::json& connection_info)
   {
     std::string connection_string = connection_info.value<std::string>("connection_string", "inproc://default");
     TLOG(TLVL_INFO) << "Connection String is " << connection_string;
-    socket_.setsockopt(ZMQ_SNDTIMEO, 1); // 1 ms, we'll repeat until we reach timeout
-    socket_.bind(connection_string);
-    socket_connected_ = true;
+    m_socket.setsockopt(ZMQ_SNDTIMEO, 1); // 1 ms, we'll repeat until we reach timeout
+    m_socket.bind(connection_string);
+    m_socket_connected = true;
   }
 
 protected:
-  void send_(const void* message, int N, const duration_type& timeout, std::string const& topic) override
+  void send_(const void* message, int N, const duration_t& timeout, std::string const& topic) override
   {
     TLOG(TLVL_INFO) << "Starting send of " << N << " bytes";
     auto start_time = std::chrono::steady_clock::now();
@@ -52,7 +52,7 @@ protected:
     do {
 
       zmq::message_t topic_msg(topic.c_str(), topic.size());
-      res = socket_.send(topic_msg, ZMQ_SNDMORE);
+      res = m_socket.send(topic_msg, ZMQ_SNDMORE);
 
       if (!res) {
         TLOG(TLVL_INFO) << "Unable to send message";
@@ -60,7 +60,7 @@ protected:
       }
 
       zmq::message_t msg(message, N);
-      res = socket_.send(msg);
+      res = m_socket.send(msg);
     } while (std::chrono::steady_clock::now() - start_time < timeout && !res);
 
     if (!res) {
@@ -71,8 +71,8 @@ protected:
   }
 
 private:
-  zmq::socket_t socket_;
-  bool socket_connected_;
+  zmq::socket_t m_socket;
+  bool m_socket_connected;
 };
 
 } // namespace ipm

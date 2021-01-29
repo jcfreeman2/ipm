@@ -10,7 +10,8 @@
 
 #define BOOST_TEST_MODULE Subscriber_test // NOLINT
 
-#include <boost/test/unit_test.hpp>
+#include "boost/test/unit_test.hpp"
+
 #include <set>
 #include <string>
 #include <vector>
@@ -25,36 +26,36 @@ class SubscriberImpl : public Subscriber
 {
 
 public:
-  static const size_type bytesOnEachReceive = 10;
+  static const message_size_t s_bytes_on_each_receive = 10;
 
   SubscriberImpl()
-    : can_receive_(false)
-    , subscriptions_()
+    : m_can_receive(false)
+    , m_subscriptions()
   {}
 
   void connect_for_receives(const nlohmann::json& /* connection_info */) {}
-  bool can_receive() const noexcept override { return can_receive_; }
-  void make_me_ready_to_receive() { can_receive_ = true; }
-  void sabotage_my_receiving_ability() { can_receive_ = false; }
+  bool can_receive() const noexcept override { return m_can_receive; }
+  void make_me_ready_to_receive() { m_can_receive = true; }
+  void sabotage_my_receiving_ability() { m_can_receive = false; }
 
-  void subscribe(std::string const& topic) override { subscriptions_.insert(topic); }
-  void unsubscribe(std::string const& topic) override { subscriptions_.erase(topic); }
+  void subscribe(std::string const& topic) override { m_subscriptions.insert(topic); }
+  void unsubscribe(std::string const& topic) override { m_subscriptions.erase(topic); }
 
-  std::set<std::string> get_subscriptions() const { return subscriptions_; }
+  std::set<std::string> get_subscriptions() const { return m_subscriptions; }
 
 protected:
-  Receiver::Response receive_(const duration_type& /* timeout */) override
+  Receiver::Response receive_(const duration_t& /* timeout */) override
   {
     Receiver::Response output;
-    output.data = std::vector<char>(bytesOnEachReceive, 'A');
-    output.metadata = "TEST";
+    output.m_data = std::vector<char>(s_bytes_on_each_receive, 'A');
+    output.m_metadata = "TEST";
 
     return output;
   }
 
 private:
-  bool can_receive_;
-  std::set<std::string> subscriptions_;
+  bool m_can_receive;
+  std::set<std::string> m_subscriptions;
 };
 
 } // namespace ""
@@ -69,33 +70,33 @@ BOOST_AUTO_TEST_CASE(CopyAndMoveSemantics)
 
 BOOST_AUTO_TEST_CASE(StatusChecks)
 {
-  SubscriberImpl theSubscriber;
+  SubscriberImpl the_subscriber;
 
-  BOOST_REQUIRE(!theSubscriber.can_receive());
+  BOOST_REQUIRE(!the_subscriber.can_receive());
 
-  theSubscriber.make_me_ready_to_receive();
-  BOOST_REQUIRE(theSubscriber.can_receive());
+  the_subscriber.make_me_ready_to_receive();
+  BOOST_REQUIRE(the_subscriber.can_receive());
 
-  theSubscriber.subscribe("TEST");
-  auto subs = theSubscriber.get_subscriptions();
+  the_subscriber.subscribe("TEST");
+  auto subs = the_subscriber.get_subscriptions();
   BOOST_REQUIRE_EQUAL(subs.size(), 1);
   BOOST_REQUIRE_EQUAL(subs.count("TEST"), 1);
 
-  theSubscriber.unsubscribe("TEST");
-  subs = theSubscriber.get_subscriptions();
+  the_subscriber.unsubscribe("TEST");
+  subs = the_subscriber.get_subscriptions();
   BOOST_REQUIRE_EQUAL(subs.size(), 0);
 
-  BOOST_REQUIRE_NO_THROW(theSubscriber.receive(Subscriber::noblock ));
-  BOOST_REQUIRE_NO_THROW(theSubscriber.receive(Subscriber::noblock, SubscriberImpl::bytesOnEachReceive));
+  BOOST_REQUIRE_NO_THROW(the_subscriber.receive(Subscriber::s_no_block));
+  BOOST_REQUIRE_NO_THROW(the_subscriber.receive(Subscriber::s_no_block, SubscriberImpl::s_bytes_on_each_receive));
 
-  BOOST_REQUIRE_EXCEPTION(theSubscriber.receive(Subscriber::noblock, SubscriberImpl::bytesOnEachReceive - 1),
+  BOOST_REQUIRE_EXCEPTION(the_subscriber.receive(Subscriber::s_no_block, SubscriberImpl::s_bytes_on_each_receive - 1),
                           dunedaq::ipm::UnexpectedNumberOfBytes,
                           [&](dunedaq::ipm::UnexpectedNumberOfBytes) { return true; });
 
-  theSubscriber.sabotage_my_receiving_ability();
-  BOOST_REQUIRE(!theSubscriber.can_receive());
+  the_subscriber.sabotage_my_receiving_ability();
+  BOOST_REQUIRE(!the_subscriber.can_receive());
 
-  BOOST_REQUIRE_EXCEPTION(theSubscriber.receive(Subscriber::noblock),
+  BOOST_REQUIRE_EXCEPTION(the_subscriber.receive(Subscriber::s_no_block),
                           dunedaq::ipm::KnownStateForbidsReceive,
                           [&](dunedaq::ipm::KnownStateForbidsReceive) { return true; });
 }

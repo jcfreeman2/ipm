@@ -12,7 +12,10 @@
 #include <vector>
 
 void
-dunedaq::ipm::Sender::send(const void* message, size_type message_size, const duration_type& timeout, std::string const& metadata)
+dunedaq::ipm::Sender::send(const void* message,
+                           message_size_t message_size,
+                           const duration_t& timeout,
+                           std::string const& metadata)
 {
   if (message_size == 0) {
     return;
@@ -31,9 +34,9 @@ dunedaq::ipm::Sender::send(const void* message, size_type message_size, const du
 
 void
 dunedaq::ipm::Sender::send_multipart(const void** message_parts,
-                       const std::vector<size_type>& message_sizes,
-                       const duration_type& timeout,
-                       std::string const& metadata)
+                                     const std::vector<message_size_t>& message_sizes,
+                                     const duration_t& timeout,
+                                     std::string const& metadata)
 {
   if (message_sizes.empty()) {
     return;

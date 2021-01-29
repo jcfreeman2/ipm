@@ -11,12 +11,12 @@
 #ifndef IPM_TEST_PLUGINS_VECTORINTIPMSUBSCRIBERDAQMODULE_HPP_
 #define IPM_TEST_PLUGINS_VECTORINTIPMSUBSCRIBERDAQMODULE_HPP_
 
+#include "ipm/Subscriber.hpp"
+#include "ipm/vectorintipmreceiverdaqmodule/Structs.hpp"
+
 #include "appfwk/DAQModule.hpp"
 #include "appfwk/DAQSink.hpp"
 #include "appfwk/ThreadHelper.hpp"
-#include "ipm/Subscriber.hpp"
-
-#include "ipm/vectorintipmreceiverdaqmodule/Structs.hpp"
 
 #include <future>
 #include <memory>
@@ -56,15 +56,15 @@ private:
   void do_stop(const data_t& );
 
   // Threading
-  appfwk::ThreadHelper thread_;
+  appfwk::ThreadHelper m_thread;
   void do_work(std::atomic<bool>& running_flag);
 
   // Configuration
-  vectorintipmreceiverdaqmodule::Conf cfg_;
-  std::shared_ptr<Subscriber> input_;
-  std::unique_ptr<appfwk::DAQSink<std::vector<int>>> outputQueue_;
-  std::chrono::milliseconds queueTimeout_;
-  size_t nIntsPerVector_ = 999;
+  vectorintipmreceiverdaqmodule::Conf m_cfg;
+  std::shared_ptr<Subscriber> m_input;
+  std::unique_ptr<appfwk::DAQSink<std::vector<int>>> m_m_outputqueue;
+  std::chrono::milliseconds m_queue_timeout;
+  size_t m_num_ints_per_vector = 999;
 
 };
 } // namespace ipm

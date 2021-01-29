@@ -8,15 +8,15 @@
  * received with this code.
  */
 
+#include "ZmqReceiverImpl.hpp"
+
 #include "TRACE/trace.h"
 #define TRACE_NAME "ZmqSubscriber"
-
-#include "ZmqReceiverImpl.hpp"
 
 namespace dunedaq {
 namespace ipm {
 
-  class ZmqSubscriber : public ZmqReceiverImpl
+class ZmqSubscriber : public ZmqReceiverImpl
 {
 public:
   ZmqSubscriber()

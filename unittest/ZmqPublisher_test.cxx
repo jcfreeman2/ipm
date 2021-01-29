@@ -20,9 +20,9 @@ BOOST_AUTO_TEST_SUITE(ZmqPublisher_test)
 
 BOOST_AUTO_TEST_CASE(BasicTests)
 {
-  auto theSender = makeIPMSender("ZmqPublisher");
-  BOOST_REQUIRE(theSender != nullptr);
-  BOOST_REQUIRE(!theSender->can_send());
+  auto the_sender = make_ipm_sender("ZmqPublisher");
+  BOOST_REQUIRE(the_sender != nullptr);
+  BOOST_REQUIRE(!the_sender->can_send());
 }
 
 BOOST_AUTO_TEST_SUITE_END()

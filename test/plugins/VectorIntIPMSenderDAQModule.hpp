@@ -60,16 +60,16 @@ private:
 
   // Threading
   void do_work(std::atomic<bool>& running_flag);
-  appfwk::ThreadHelper thread_;
+  appfwk::ThreadHelper m_thread;
 
   // Configuration (for validation)
 
-  vectorintipmsenderdaqmodule::Conf cfg_;
-  size_t nIntsPerVector_ = 999;
-  std::chrono::milliseconds queueTimeout_;
-  std::unique_ptr<appfwk::DAQSource<std::vector<int>>> inputQueue_;
-  std::shared_ptr<Sender> output_;
-  std::string topic_{ "" };
+  vectorintipmsenderdaqmodule::Conf m_cfg;
+  size_t m_num_ints_per_vector = 999;
+  std::chrono::milliseconds m_queue_timeout;
+  std::unique_ptr<appfwk::DAQSource<std::vector<int>>> m_m_inputqueue;
+  std::shared_ptr<Sender> m_output;
+  std::string m_topic{ "" };
 };
 
 } // namespace ipm

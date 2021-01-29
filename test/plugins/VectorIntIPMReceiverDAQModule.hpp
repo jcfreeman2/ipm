@@ -56,15 +56,15 @@ private:
   void do_stop(const data_t& );
 
   // Threading
-  appfwk::ThreadHelper thread_;
+  appfwk::ThreadHelper m_thread;
   void do_work(std::atomic<bool>& running_flag);
 
   // Configuration
-  vectorintipmreceiverdaqmodule::Conf cfg_;
-  std::shared_ptr<Receiver> input_;
-  std::unique_ptr<appfwk::DAQSink<std::vector<int>>> outputQueue_;
-  std::chrono::milliseconds queueTimeout_;
-  size_t nIntsPerVector_ = 999;
+  vectorintipmreceiverdaqmodule::Conf m_cfg;
+  std::shared_ptr<Receiver> m_input;
+  std::unique_ptr<appfwk::DAQSink<std::vector<int>>> m_output_queue;
+  std::chrono::milliseconds m_queue_timeout;
+  size_t m_num_ints_per_vector = 999;
 
 };
 } // namespace ipm

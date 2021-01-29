@@ -7,10 +7,10 @@
  * received with this code.
  */
 
+#include "ZmqSenderImpl.hpp"
+
 #include "TRACE/trace.h"
 #define TRACE_NAME "ZmqSender"
-
-#include "ZmqSenderImpl.hpp"
 
 namespace dunedaq {
 namespace ipm {

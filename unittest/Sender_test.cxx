@@ -10,7 +10,8 @@
 
 #define BOOST_TEST_MODULE Sender_test // NOLINT
 
-#include <boost/test/unit_test.hpp>
+#include "boost/test/unit_test.hpp"
+
 #include <string>
 #include <vector>
 
@@ -25,22 +26,22 @@ class SenderImpl : public Sender
 
 public:
   SenderImpl()
-    : can_send_(false)
+    : m_can_send(false)
   {}
 
   void connect_for_sends(const nlohmann::json& /* connection_info */) {}
-  bool can_send() const noexcept override { return can_send_; }
-  void make_me_ready_to_send() { can_send_ = true; }
-  void sabotage_my_sending_ability() { can_send_ = false; }
+  bool can_send() const noexcept override { return m_can_send; }
+  void make_me_ready_to_send() { m_can_send = true; }
+  void sabotage_my_sending_ability() { m_can_send = false; }
 
 protected:
-  void send_(const void* /* message */, int /* N */, const duration_type& /* timeout */, const std::string& /* metadata */) override
+  void send_(const void* /* message */, int /* N */, const duration_t& /* timeout */, const std::string& /* metadata */) override
   {
     // Pretty unexciting stub
   }
 
 private:
-  bool can_send_;
+  bool m_can_send;
 };
 
 } // namespace ""
@@ -55,31 +56,31 @@ BOOST_AUTO_TEST_CASE(CopyAndMoveSemantics)
 
 BOOST_AUTO_TEST_CASE(StatusChecks)
 {
-  SenderImpl theSender;
+  SenderImpl the_sender;
   std::vector<char> random_data{ 'T', 'E', 'S', 'T' };
 
-  BOOST_REQUIRE(!theSender.can_send());
+  BOOST_REQUIRE(!the_sender.can_send());
 
-  theSender.make_me_ready_to_send();
-  BOOST_REQUIRE(theSender.can_send());
+  the_sender.make_me_ready_to_send();
+  BOOST_REQUIRE(the_sender.can_send());
 
-  BOOST_REQUIRE_NO_THROW(theSender.send(random_data.data(), random_data.size(), Sender::noblock));
+  BOOST_REQUIRE_NO_THROW(the_sender.send(random_data.data(), random_data.size(), Sender::s_no_block));
 
-  theSender.sabotage_my_sending_ability();
-  BOOST_REQUIRE(!theSender.can_send());
+  the_sender.sabotage_my_sending_ability();
+  BOOST_REQUIRE(!the_sender.can_send());
 
-  BOOST_REQUIRE_EXCEPTION(theSender.send(random_data.data(), random_data.size(), Sender::noblock),
+  BOOST_REQUIRE_EXCEPTION(the_sender.send(random_data.data(), random_data.size(), Sender::s_no_block),
                           dunedaq::ipm::KnownStateForbidsSend,
                           [&](dunedaq::ipm::KnownStateForbidsSend) { return true; });
 }
 
 BOOST_AUTO_TEST_CASE(BadInput)
 {
-  SenderImpl theSender;
-  theSender.make_me_ready_to_send();
+  SenderImpl the_sender;
+  the_sender.make_me_ready_to_send();
 
-  const char* badBytes = nullptr;
-  BOOST_REQUIRE_EXCEPTION(theSender.send(badBytes, 10, Sender::noblock),
+  const char* bad_bytes = nullptr;
+  BOOST_REQUIRE_EXCEPTION(the_sender.send(bad_bytes, 10, Sender::s_no_block),
                           dunedaq::ipm::NullPointerPassedToSend,
                           [&](dunedaq::ipm::NullPointerPassedToSend) { return true; });
 }

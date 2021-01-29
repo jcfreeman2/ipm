@@ -29,8 +29,8 @@ namespace ipm {
 
 VectorIntIPMReceiverDAQModule::VectorIntIPMReceiverDAQModule(const std::string& name)
   : appfwk::DAQModule(name)
-  , thread_(std::bind(&VectorIntIPMReceiverDAQModule::do_work, this, std::placeholders::_1))
-  , outputQueue_(nullptr)
+  , m_thread(std::bind(&VectorIntIPMReceiverDAQModule::do_work, this, std::placeholders::_1))
+  , m_output_queue(nullptr)
 {
 
   register_command("conf", &VectorIntIPMReceiverDAQModule::do_configure);
@@ -45,7 +45,7 @@ VectorIntIPMReceiverDAQModule::init(const data_t& init_data)
   for (const auto& qi : ini.qinfos) {
     if (qi.name == "output") {
       ERS_INFO("VIIRDM: output queue is " << qi.inst);
-      outputQueue_.reset(new appfwk::DAQSink<std::vector<int>>(qi.inst));
+      m_output_queue.reset(new appfwk::DAQSink<std::vector<int>>(qi.inst));
     }
   }
 }
@@ -53,26 +53,26 @@ VectorIntIPMReceiverDAQModule::init(const data_t& init_data)
 void
 VectorIntIPMReceiverDAQModule::do_configure(const data_t& config_data)
 {
-  cfg_ = config_data.get<vectorintipmreceiverdaqmodule::Conf>();
+  m_cfg = config_data.get<vectorintipmreceiverdaqmodule::Conf>();
 
-  nIntsPerVector_ = cfg_.nIntsPerVector;
-  queueTimeout_ = static_cast<std::chrono::milliseconds>(cfg_.queue_timeout_ms);
+  m_num_ints_per_vector = m_cfg.nIntsPerVector;
+  m_queue_timeout = static_cast<std::chrono::milliseconds>(m_cfg.queue_timeout_ms);
 
-  input_ = makeIPMReceiver(cfg_.receiver_type);
+  m_input = make_ipm_receiver(m_cfg.receiver_type);
 
-  input_->connect_for_receives(cfg_.connection_info);
+  m_input->connect_for_receives(m_cfg.connection_info);
 }
 
 void
 VectorIntIPMReceiverDAQModule::do_start(const data_t& /*args*/)
 {
-  thread_.start_working_thread();
+  m_thread.start_working_thread();
 }
 
 void
 VectorIntIPMReceiverDAQModule::do_stop(const data_t& /*args*/)
 {
-  thread_.stop_working_thread();
+  m_thread.stop_working_thread();
 }
 
 void
@@ -82,22 +82,22 @@ VectorIntIPMReceiverDAQModule::do_work(std::atomic<bool>& running_flag)
   std::ostringstream oss;
 
   while (running_flag.load()) {
-    if (input_->can_receive()) {
+    if (m_input->can_receive()) {
 
       TLOG(TLVL_TRACE) << get_name() << ": Creating output vector";
-      std::vector<int> output(nIntsPerVector_);
+      std::vector<int> output(m_num_ints_per_vector);
 
       try {
 
-        auto recvd = input_->receive(queueTimeout_);
+        auto recvd = m_input->receive(m_queue_timeout);
 
-        if (recvd.data.size() == 0) {
+        if (recvd.m_data.size() == 0) {
           TLOG(TLVL_TRACE) << "No data received, moving to next loop iteration";
           continue;
         }
 
-        assert(recvd.data.size() == nIntsPerVector_ * sizeof(int));
-        memcpy(&output[0], &recvd.data[0], sizeof(int) * nIntsPerVector_);
+        assert(recvd.m_data.size() == m_num_ints_per_vector * sizeof(int));
+        memcpy(&output[0], &recvd.m_data[0], sizeof(int) * m_num_ints_per_vector);
       } catch (ReceiveTimeoutExpired const& rte) {
         TLOG(TLVL_TRACE) << "ReceiveTimeoutExpired: " << rte.what();
         continue;
@@ -108,7 +108,7 @@ VectorIntIPMReceiverDAQModule::do_work(std::atomic<bool>& running_flag)
 
       TLOG(TLVL_TRACE) << get_name() << ": Pushing vector into outputQueue";
       try {
-        outputQueue_->push(std::move(output), queueTimeout_);
+        m_output_queue->push(std::move(output), m_queue_timeout);
       } catch (const appfwk::QueueTimeoutExpired& ex) {
         ers::warning(ex);
       }
