@@ -11,12 +11,12 @@
 #ifndef IPM_TEST_PLUGINS_VECTORINTIPMRECEIVERDAQMODULE_HPP_
 #define IPM_TEST_PLUGINS_VECTORINTIPMRECEIVERDAQMODULE_HPP_
 
+#include "ipm/Receiver.hpp"
+#include "ipm/vectorintipmreceiverdaqmodule/Structs.hpp"
+
 #include "appfwk/DAQModule.hpp"
 #include "appfwk/DAQSink.hpp"
 #include "appfwk/ThreadHelper.hpp"
-#include "ipm/Receiver.hpp"
-
-#include "ipm/vectorintipmreceiverdaqmodule/Structs.hpp"
 
 #include <future>
 #include <memory>
@@ -47,13 +47,13 @@ public:
   VectorIntIPMReceiverDAQModule& operator=(VectorIntIPMReceiverDAQModule&&) =
     delete; ///< VectorIntIPMReceiverDAQModule is not move-assignable
 
-  void init(const data_t& ) override;
+  void init(const data_t&) override;
 
 private:
   // Commands
-  void do_configure(const data_t& );
-  void do_start(const data_t& );
-  void do_stop(const data_t& );
+  void do_configure(const data_t&);
+  void do_start(const data_t&);
+  void do_stop(const data_t&);
 
   // Threading
   appfwk::ThreadHelper m_thread;
@@ -65,7 +65,6 @@ private:
   std::unique_ptr<appfwk::DAQSink<std::vector<int>>> m_output_queue;
   std::chrono::milliseconds m_queue_timeout;
   size_t m_num_ints_per_vector = 999;
-
 };
 } // namespace ipm
 

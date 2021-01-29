@@ -10,7 +10,8 @@
 
 #define BOOST_TEST_MODULE Receiver_test // NOLINT
 
-#include <boost/test/unit_test.hpp>
+#include "boost/test/unit_test.hpp"
+
 #include <string>
 #include <vector>
 

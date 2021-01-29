@@ -28,10 +28,10 @@
 
 #include "ipm/Receiver.hpp"
 
-#include "ers/Issue.h"
-#include "nlohmann/json.hpp"
 #include "cetlib/BasicPluginFactory.h"
 #include "cetlib/compiler_macros.h"
+#include "ers/Issue.h"
+#include "nlohmann/json.hpp"
 
 #include <memory>
 #include <string>
@@ -53,7 +53,6 @@ public:
 
   Subscriber(Subscriber&&) = delete;
   Subscriber& operator=(Subscriber&&) = delete;
-
 };
 
 std::shared_ptr<Subscriber>

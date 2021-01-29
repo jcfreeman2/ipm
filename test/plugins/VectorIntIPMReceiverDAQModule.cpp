@@ -9,8 +9,11 @@
 
 #include "VectorIntIPMReceiverDAQModule.hpp"
 
-#include "appfwk/cmd/Nljs.hpp"
 #include "ipm/vectorintipmreceiverdaqmodule/Nljs.hpp"
+
+#include "appfwk/cmd/Nljs.hpp"
+
+#include "TRACE/trace.h"
 
 #include <chrono>
 #include <string>
@@ -18,7 +21,6 @@
 #include <utility>
 #include <vector>
 
-#include <TRACE/trace.h>
 /**
  * @brief Name used by TRACE TLOG calls from this source file
  */
@@ -106,7 +108,7 @@ VectorIntIPMReceiverDAQModule::do_work(std::atomic<bool>& running_flag)
       ers::info(ReceiverProgressUpdate(ERS_HERE, get_name(), oss.str()));
       oss.str("");
 
-      TLOG(TLVL_TRACE) << get_name() << ": Pushing vector into outputQueue";
+      TLOG(TLVL_TRACE) << get_name() << ": Pushing vector into output_queue";
       try {
         m_output_queue->push(std::move(output), m_queue_timeout);
       } catch (const appfwk::QueueTimeoutExpired& ex) {

@@ -97,9 +97,7 @@ public:
   Sender& operator=(Sender&&) = delete;
 
 protected:
-  virtual void send_(const void* message,
-                     message_size_t N, const duration_t& timeout,
-                     std::string const& metadata) = 0;
+  virtual void send_(const void* message, message_size_t N, const duration_t& timeout, std::string const& metadata) = 0;
   virtual void send_multipart_(const void** message_parts,
                                const std::vector<message_size_t>& message_sizes,
                                const duration_t& timeout,

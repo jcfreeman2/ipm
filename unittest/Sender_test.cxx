@@ -35,7 +35,10 @@ public:
   void sabotage_my_sending_ability() { m_can_send = false; }
 
 protected:
-  void send_(const void* /* message */, int /* N */, const duration_t& /* timeout */, const std::string& /* metadata */) override
+  void send_(const void* /* message */,
+             int /* N */,
+             const duration_t& /* timeout */,
+             const std::string& /* metadata */) override
   {
     // Pretty unexciting stub
   }

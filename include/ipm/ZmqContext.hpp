@@ -10,7 +10,7 @@
  * received with this code.
  */
 
-#include <zmq.hpp>
+#include "zmq.hpp"
 
 namespace dunedaq::ipm {
 class ZmqContext

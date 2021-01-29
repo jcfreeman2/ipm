@@ -47,13 +47,13 @@ public:
   VectorIntIPMSubscriberDAQModule& operator=(VectorIntIPMSubscriberDAQModule&&) =
     delete; ///< VectorIntIPMSubscriberDAQModule is not move-assignable
 
-  void init(const data_t& ) override;
+  void init(const data_t&) override;
 
 private:
   // Commands
-  void do_configure(const data_t& );
-  void do_start(const data_t& );
-  void do_stop(const data_t& );
+  void do_configure(const data_t&);
+  void do_start(const data_t&);
+  void do_stop(const data_t&);
 
   // Threading
   appfwk::ThreadHelper m_thread;
@@ -62,10 +62,9 @@ private:
   // Configuration
   vectorintipmreceiverdaqmodule::Conf m_cfg;
   std::shared_ptr<Subscriber> m_input;
-  std::unique_ptr<appfwk::DAQSink<std::vector<int>>> m_m_outputqueue;
+  std::unique_ptr<appfwk::DAQSink<std::vector<int>>> m_output_queue;
   std::chrono::milliseconds m_queue_timeout;
   size_t m_num_ints_per_vector = 999;
-
 };
 } // namespace ipm
 

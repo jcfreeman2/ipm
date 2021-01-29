@@ -26,5 +26,4 @@ BOOST_AUTO_TEST_CASE(BasicTests)
   BOOST_REQUIRE(!the_sender->can_send());
 }
 
-
 BOOST_AUTO_TEST_SUITE_END()

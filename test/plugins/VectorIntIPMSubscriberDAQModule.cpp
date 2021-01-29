@@ -32,7 +32,7 @@ namespace ipm {
 VectorIntIPMSubscriberDAQModule::VectorIntIPMSubscriberDAQModule(const std::string& name)
   : appfwk::DAQModule(name)
   , m_thread(std::bind(&VectorIntIPMSubscriberDAQModule::do_work, this, std::placeholders::_1))
-  , m_m_outputqueue(nullptr)
+  , m_output_queue(nullptr)
 {
 
   register_command("conf", &VectorIntIPMSubscriberDAQModule::do_configure);
@@ -47,7 +47,7 @@ VectorIntIPMSubscriberDAQModule::init(const data_t& init_data)
   for (const auto& qi : ini.qinfos) {
     if (qi.name == "output") {
       ERS_INFO("VIIRDM: output queue is " << qi.inst);
-      m_m_outputqueue.reset(new appfwk::DAQSink<std::vector<int>>(qi.inst));
+      m_output_queue.reset(new appfwk::DAQSink<std::vector<int>>(qi.inst));
     }
   }
 }
@@ -95,27 +95,25 @@ VectorIntIPMSubscriberDAQModule::do_work(std::atomic<bool>& running_flag)
 
       try {
         auto recvd = m_input->receive(m_queue_timeout);
-      if (recvd.m_data.size() == 0) {
-        TLOG(TLVL_TRACE) << "No data received, moving to next loop iteration";
+        if (recvd.m_data.size() == 0) {
+          TLOG(TLVL_TRACE) << "No data received, moving to next loop iteration";
+          continue;
+        }
+
+        assert(recvd.m_data.size() == m_num_ints_per_vector * sizeof(int));
+        memcpy(&output[0], &recvd.m_data[0], sizeof(int) * m_num_ints_per_vector);
+
+        oss << ": Received vector " << counter << " with size " << output.size() << " on topic " << recvd.m_metadata;
+        ers::info(SubscriberProgressUpdate(ERS_HERE, get_name(), oss.str()));
+        oss.str("");
+      } catch (ReceiveTimeoutExpired const& rte) {
+        TLOG(TLVL_TRACE) << "ReceiveTimeoutExpired: " << rte.what();
         continue;
       }
 
-      assert(recvd.m_data.size() == m_num_ints_per_vector * sizeof(int));
-      memcpy(&output[0], &recvd.m_data[0], sizeof(int) * m_num_ints_per_vector);
-
-      oss << ": Received vector " << counter << " with size " << output.size() << " on topic " << recvd.m_metadata;
-      ers::info(SubscriberProgressUpdate(ERS_HERE, get_name(), oss.str()));
-      oss.str("");
-    }
-    catch (ReceiveTimeoutExpired const& rte)
-    {
-      TLOG(TLVL_TRACE) << "ReceiveTimeoutExpired: " << rte.what();
-      continue;
-    }
-
-      TLOG(TLVL_TRACE) << get_name() << ": Pushing vector into outputQueue";
+      TLOG(TLVL_TRACE) << get_name() << ": Pushing vector into output_queue";
       try {
-        m_m_outputqueue->push(std::move(output), m_queue_timeout);
+        m_output_queue->push(std::move(output), m_queue_timeout);
       } catch (const appfwk::QueueTimeoutExpired& ex) {
         ers::warning(ex);
       }

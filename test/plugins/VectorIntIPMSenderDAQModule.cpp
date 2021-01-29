@@ -9,16 +9,12 @@
 
 #include "VectorIntIPMSenderDAQModule.hpp"
 
-#include "appfwk/cmd/Nljs.hpp"
 #include "ipm/vectorintipmsenderdaqmodule/Nljs.hpp"
 
-#include "TRACE/trace.h"
-#include <ers/ers.h>
+#include "appfwk/cmd/Nljs.hpp"
 
-/**
- * @brief Name used by TRACE TLOG calls from this source file
- */
-#define TRACE_NAME "VectorIntIPMSender" // NOLINT
+#include "TRACE/trace.h"
+#include "ers/ers.h"
 
 #include <chrono>
 #include <functional>
@@ -26,13 +22,18 @@
 #include <thread>
 #include <vector>
 
+/**
+ * @brief Name used by TRACE TLOG calls from this source file
+ */
+#define TRACE_NAME "VectorIntIPMSender" // NOLINT
+
 namespace dunedaq::ipm {
 
 VectorIntIPMSenderDAQModule::VectorIntIPMSenderDAQModule(const std::string& name)
   : appfwk::DAQModule(name)
   , m_thread(std::bind(&VectorIntIPMSenderDAQModule::do_work, this, std::placeholders::_1))
   , m_queue_timeout(100)
-  , m_m_inputqueue(nullptr)
+  , m_input_queue(nullptr)
 {
 
   register_command("conf", &VectorIntIPMSenderDAQModule::do_configure);
@@ -47,10 +48,9 @@ VectorIntIPMSenderDAQModule::init(const data_t& init_data)
   for (const auto& qi : ini.qinfos) {
     if (qi.name == "input") {
       ERS_INFO("VIISDM: input queue is " << qi.inst);
-      m_m_inputqueue.reset(new appfwk::DAQSource<std::vector<int>>(qi.inst));
+      m_input_queue.reset(new appfwk::DAQSource<std::vector<int>>(qi.inst));
     }
   }
-
 
   // TODO: John Freeman (jcfree@fnal.gov), Oct-22-2020
   // In the next week, determine what to do if sender_type isn't known
@@ -59,7 +59,7 @@ VectorIntIPMSenderDAQModule::init(const data_t& init_data)
 void
 VectorIntIPMSenderDAQModule::do_configure(const data_t& config_data)
 {
-m_cfg = config_data.get<vectorintipmsenderdaqmodule::Conf>();
+  m_cfg = config_data.get<vectorintipmsenderdaqmodule::Conf>();
 
   m_num_ints_per_vector = m_cfg.nIntsPerVector;
   m_queue_timeout = static_cast<std::chrono::milliseconds>(m_cfg.queue_timeout_ms);
@@ -89,12 +89,12 @@ VectorIntIPMSenderDAQModule::do_work(std::atomic<bool>& running_flag)
   std::ostringstream oss;
 
   while (running_flag.load()) {
-    if (m_m_inputqueue->can_pop() && m_output->can_send()) {
+    if (m_input_queue->can_pop() && m_output->can_send()) {
 
-      TLOG(TLVL_TRACE) << get_name() << ": Going to receive data from inputQueue";
+      TLOG(TLVL_TRACE) << get_name() << ": Going to receive data from input_queue";
 
       try {
-        m_m_inputqueue->pop(vec, m_queue_timeout);
+        m_input_queue->pop(vec, m_queue_timeout);
       } catch (const dunedaq::appfwk::QueueTimeoutExpired& excpt) {
         continue;
       }
