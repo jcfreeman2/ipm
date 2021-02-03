@@ -23,11 +23,10 @@
 #ifndef IPM_INCLUDE_IPM_SENDER_HPP_
 #define IPM_INCLUDE_IPM_SENDER_HPP_
 
+#include "cetlib/BasicPluginFactory.h"
+#include "cetlib/compiler_macros.h"
 #include "ers/Issue.h"
 #include "nlohmann/json.hpp"
-
-#include <cetlib/BasicPluginFactory.h>
-#include <cetlib/compiler_macros.h>
 
 #include <memory>
 #include <string>
@@ -64,11 +63,11 @@ class Sender
 {
 
 public:
-  using duration_type = std::chrono::milliseconds;
-  static constexpr duration_type block = std::chrono::duration_values<duration_type>::max();
-  static constexpr duration_type noblock = std::chrono::duration_values<duration_type>::zero();
+  using duration_t = std::chrono::milliseconds;
+  static constexpr duration_t s_block = std::chrono::duration_values<duration_t>::max();
+  static constexpr duration_t s_no_block = std::chrono::duration_values<duration_t>::zero();
 
-  using size_type = int;
+  using message_size_t = int;
 
   Sender() = default;
 
@@ -82,13 +81,13 @@ public:
   // -If message_size == 0, function is a no-op
 
   void send(const void* message,
-            size_type message_size,
-            const duration_type& timeout,
+            message_size_t message_size,
+            const duration_t& timeout,
             std::string const& metadata = "");
 
   void send_multipart(const void** message_parts,
-                      const std::vector<size_type>& message_sizes,
-                      const duration_type& timeout,
+                      const std::vector<message_size_t>& message_sizes,
+                      const duration_t& timeout,
                       std::string const& metadata = "");
 
   Sender(const Sender&) = delete;
@@ -98,10 +97,10 @@ public:
   Sender& operator=(Sender&&) = delete;
 
 protected:
-  virtual void send_(const void* message, size_type N, const duration_type& timeout, std::string const& metadata) = 0;
+  virtual void send_(const void* message, message_size_t N, const duration_t& timeout, std::string const& metadata) = 0;
   virtual void send_multipart_(const void** message_parts,
-                               const std::vector<size_type>& message_sizes,
-                               const duration_type& timeout,
+                               const std::vector<message_size_t>& message_sizes,
+                               const duration_t& timeout,
                                std::string const& metadata)
   {
     for (size_t i = 0; i < message_sizes.size(); ++i) {
@@ -111,7 +110,7 @@ protected:
 };
 
 std::shared_ptr<Sender>
-makeIPMSender(std::string const& plugin_name)
+make_ipm_sender(std::string const& plugin_name)
 {
   static cet::BasicPluginFactory bpf("duneIPM", "make");
   return bpf.makePlugin<std::shared_ptr<Sender>>(plugin_name);

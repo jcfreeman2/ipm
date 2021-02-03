@@ -10,7 +10,8 @@
 
 #define BOOST_TEST_MODULE Receiver_test // NOLINT
 
-#include <boost/test/unit_test.hpp>
+#include "boost/test/unit_test.hpp"
+
 #include <string>
 #include <vector>
 
@@ -24,28 +25,28 @@ class ReceiverImpl : public Receiver
 {
 
 public:
-  static const size_type bytesOnEachReceive = 10;
+  static const message_size_t s_bytes_on_each_receive = 10;
 
   ReceiverImpl()
-    : can_receive_(false)
+    : m_can_receive(false)
   {}
 
   void connect_for_receives(const nlohmann::json& /* connection_info */) {}
-  bool can_receive() const noexcept override { return can_receive_; }
-  void make_me_ready_to_receive() { can_receive_ = true; }
-  void sabotage_my_receiving_ability() { can_receive_ = false; }
+  bool can_receive() const noexcept override { return m_can_receive; }
+  void make_me_ready_to_receive() { m_can_receive = true; }
+  void sabotage_my_receiving_ability() { m_can_receive = false; }
 
 protected:
-  Receiver::Response receive_(const duration_type& /* timeout */) override
+  Receiver::Response receive_(const duration_t& /* timeout */) override
   {
     Receiver::Response output;
-    output.data = std::vector<char>(bytesOnEachReceive, 'A');
-    output.metadata = "";
+    output.m_data = std::vector<char>(s_bytes_on_each_receive, 'A');
+    output.m_metadata = "";
     return output;
   }
 
 private:
-  bool can_receive_;
+  bool m_can_receive;
 };
 
 } // namespace ""
@@ -60,24 +61,24 @@ BOOST_AUTO_TEST_CASE(CopyAndMoveSemantics)
 
 BOOST_AUTO_TEST_CASE(StatusChecks)
 {
-  ReceiverImpl theReceiver;
+  ReceiverImpl the_receiver;
 
-  BOOST_REQUIRE(!theReceiver.can_receive());
+  BOOST_REQUIRE(!the_receiver.can_receive());
 
-  theReceiver.make_me_ready_to_receive();
-  BOOST_REQUIRE(theReceiver.can_receive());
+  the_receiver.make_me_ready_to_receive();
+  BOOST_REQUIRE(the_receiver.can_receive());
 
-  BOOST_REQUIRE_NO_THROW(theReceiver.receive(Receiver::noblock));
-  BOOST_REQUIRE_NO_THROW(theReceiver.receive(Receiver::noblock, ReceiverImpl::bytesOnEachReceive));
+  BOOST_REQUIRE_NO_THROW(the_receiver.receive(Receiver::s_no_block));
+  BOOST_REQUIRE_NO_THROW(the_receiver.receive(Receiver::s_no_block, ReceiverImpl::s_bytes_on_each_receive));
 
-  BOOST_REQUIRE_EXCEPTION(theReceiver.receive(Receiver::noblock, ReceiverImpl::bytesOnEachReceive - 1),
+  BOOST_REQUIRE_EXCEPTION(the_receiver.receive(Receiver::s_no_block, ReceiverImpl::s_bytes_on_each_receive - 1),
                           dunedaq::ipm::UnexpectedNumberOfBytes,
                           [&](dunedaq::ipm::UnexpectedNumberOfBytes) { return true; });
 
-  theReceiver.sabotage_my_receiving_ability();
-  BOOST_REQUIRE(!theReceiver.can_receive());
+  the_receiver.sabotage_my_receiving_ability();
+  BOOST_REQUIRE(!the_receiver.can_receive());
 
-  BOOST_REQUIRE_EXCEPTION(theReceiver.receive(Receiver::noblock),
+  BOOST_REQUIRE_EXCEPTION(the_receiver.receive(Receiver::s_no_block),
                           dunedaq::ipm::KnownStateForbidsReceive,
                           [&](dunedaq::ipm::KnownStateForbidsReceive) { return true; });
 }

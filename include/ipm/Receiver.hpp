@@ -23,11 +23,10 @@
 #ifndef IPM_INCLUDE_IPM_RECEIVER_HPP_
 #define IPM_INCLUDE_IPM_RECEIVER_HPP_
 
+#include "cetlib/BasicPluginFactory.h"
+#include "cetlib/compiler_macros.h"
 #include "ers/Issue.h"
 #include "nlohmann/json.hpp"
-
-#include <cetlib/BasicPluginFactory.h>
-#include <cetlib/compiler_macros.h>
 
 #include <memory>
 #include <string>
@@ -66,12 +65,12 @@ class Receiver
 {
 
 public:
-  using duration_type = std::chrono::milliseconds;
-  static constexpr duration_type block = std::chrono::duration_values<duration_type>::max();
-  static constexpr duration_type noblock = std::chrono::duration_values<duration_type>::zero();
+  using duration_t = std::chrono::milliseconds;
+  static constexpr duration_t s_block = std::chrono::duration_values<duration_t>::max();
+  static constexpr duration_t s_no_block = std::chrono::duration_values<duration_t>::zero();
 
-  using size_type = int;
-  static constexpr size_type anysize =
+  using message_size_t = int;
+  static constexpr message_size_t s_any_size =
     0; // Since "I want 0 bytes" is pointless, "0" denotes "I don't care about the size"
 
   Receiver() = default;
@@ -87,11 +86,11 @@ public:
 
   struct Response
   {
-    std::string metadata{ "" };
-    std::vector<char> data{};
+    std::string m_metadata{ "" };
+    std::vector<char> m_data{};
   };
 
-  Response receive(const duration_type& timeout, size_type nbytes = anysize);
+  Response receive(const duration_t& timeout, message_size_t num_bytes = s_any_size);
 
   Receiver(const Receiver&) = delete;
   Receiver& operator=(const Receiver&) = delete;
@@ -100,11 +99,11 @@ public:
   Receiver& operator=(Receiver&&) = delete;
 
 protected:
-  virtual Response receive_(const duration_type& timeout) = 0;
+  virtual Response receive_(const duration_t& timeout) = 0;
 };
 
 std::shared_ptr<Receiver>
-makeIPMReceiver(std::string const& plugin_name)
+make_ipm_receiver(std::string const& plugin_name)
 {
   static cet::BasicPluginFactory bpf("duneIPM", "make");
   return bpf.makePlugin<std::shared_ptr<Receiver>>(plugin_name);

@@ -28,11 +28,10 @@
 
 #include "ipm/Receiver.hpp"
 
+#include "cetlib/BasicPluginFactory.h"
+#include "cetlib/compiler_macros.h"
 #include "ers/Issue.h"
 #include "nlohmann/json.hpp"
-
-#include <cetlib/BasicPluginFactory.h>
-#include <cetlib/compiler_macros.h>
 
 #include <memory>
 #include <string>
@@ -54,11 +53,10 @@ public:
 
   Subscriber(Subscriber&&) = delete;
   Subscriber& operator=(Subscriber&&) = delete;
-
 };
 
 std::shared_ptr<Subscriber>
-makeIPMSubscriber(std::string const& plugin_name)
+make_ipm_subscriber(std::string const& plugin_name)
 {
   static cet::BasicPluginFactory bpf("duneIPM", "make");
   auto receiver_ptr = bpf.makePlugin<std::shared_ptr<Receiver>>(plugin_name);

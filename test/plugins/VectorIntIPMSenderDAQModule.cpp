@@ -9,16 +9,12 @@
 
 #include "VectorIntIPMSenderDAQModule.hpp"
 
-#include "appfwk/cmd/Nljs.hpp"
 #include "ipm/vectorintipmsenderdaqmodule/Nljs.hpp"
 
-#include "TRACE/trace.h"
-#include <ers/ers.h>
+#include "appfwk/cmd/Nljs.hpp"
 
-/**
- * @brief Name used by TRACE TLOG calls from this source file
- */
-#define TRACE_NAME "VectorIntIPMSender" // NOLINT
+#include "TRACE/trace.h"
+#include "ers/ers.h"
 
 #include <chrono>
 #include <functional>
@@ -26,13 +22,18 @@
 #include <thread>
 #include <vector>
 
+/**
+ * @brief Name used by TRACE TLOG calls from this source file
+ */
+#define TRACE_NAME "VectorIntIPMSender" // NOLINT
+
 namespace dunedaq::ipm {
 
 VectorIntIPMSenderDAQModule::VectorIntIPMSenderDAQModule(const std::string& name)
   : appfwk::DAQModule(name)
-  , thread_(std::bind(&VectorIntIPMSenderDAQModule::do_work, this, std::placeholders::_1))
-  , queueTimeout_(100)
-  , inputQueue_(nullptr)
+  , m_thread(std::bind(&VectorIntIPMSenderDAQModule::do_work, this, std::placeholders::_1))
+  , m_queue_timeout(100)
+  , m_input_queue(nullptr)
 {
 
   register_command("conf", &VectorIntIPMSenderDAQModule::do_configure);
@@ -47,10 +48,9 @@ VectorIntIPMSenderDAQModule::init(const data_t& init_data)
   for (const auto& qi : ini.qinfos) {
     if (qi.name == "input") {
       ERS_INFO("VIISDM: input queue is " << qi.inst);
-      inputQueue_.reset(new appfwk::DAQSource<std::vector<int>>(qi.inst));
+      m_input_queue.reset(new appfwk::DAQSource<std::vector<int>>(qi.inst));
     }
   }
-
 
   // TODO: John Freeman (jcfree@fnal.gov), Oct-22-2020
   // In the next week, determine what to do if sender_type isn't known
@@ -59,26 +59,26 @@ VectorIntIPMSenderDAQModule::init(const data_t& init_data)
 void
 VectorIntIPMSenderDAQModule::do_configure(const data_t& config_data)
 {
-cfg_ = config_data.get<vectorintipmsenderdaqmodule::Conf>();
+  m_cfg = config_data.get<vectorintipmsenderdaqmodule::Conf>();
 
-  nIntsPerVector_ = cfg_.nIntsPerVector;
-  queueTimeout_ = static_cast<std::chrono::milliseconds>(cfg_.queue_timeout_ms);
-  topic_ = cfg_.topic;
+  m_num_ints_per_vector = m_cfg.nIntsPerVector;
+  m_queue_timeout = static_cast<std::chrono::milliseconds>(m_cfg.queue_timeout_ms);
+  m_topic = m_cfg.topic;
 
-  output_ = makeIPMSender(cfg_.sender_type);
-  output_->connect_for_sends(cfg_.connection_info);
+  m_output = make_ipm_sender(m_cfg.sender_type);
+  m_output->connect_for_sends(m_cfg.connection_info);
 }
 
 void
 VectorIntIPMSenderDAQModule::do_start(const data_t& /*args*/)
 {
-  thread_.start_working_thread();
+  m_thread.start_working_thread();
 }
 
 void
 VectorIntIPMSenderDAQModule::do_stop(const data_t& /*args*/)
 {
-  thread_.stop_working_thread();
+  m_thread.stop_working_thread();
 }
 
 void
@@ -89,18 +89,18 @@ VectorIntIPMSenderDAQModule::do_work(std::atomic<bool>& running_flag)
   std::ostringstream oss;
 
   while (running_flag.load()) {
-    if (inputQueue_->can_pop() && output_->can_send()) {
+    if (m_input_queue->can_pop() && m_output->can_send()) {
 
-      TLOG(TLVL_TRACE) << get_name() << ": Going to receive data from inputQueue";
+      TLOG(TLVL_TRACE) << get_name() << ": Going to receive data from input_queue";
 
       try {
-        inputQueue_->pop(vec, queueTimeout_);
+        m_input_queue->pop(vec, m_queue_timeout);
       } catch (const dunedaq::appfwk::QueueTimeoutExpired& excpt) {
         continue;
       }
 
       TLOG(TLVL_TRACE) << get_name() << ": Received vector of size " << vec.size() << " from queue, sending";
-      output_->send(&vec[0], vec.size() * sizeof(int), queueTimeout_, topic_);
+      m_output->send(&vec[0], vec.size() * sizeof(int), m_queue_timeout, m_topic);
 
       counter++;
       oss << ": Sent " << counter << " vectors";

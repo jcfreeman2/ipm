@@ -12,14 +12,14 @@
 #ifndef IPM_TEST_PLUGINS_VECTORINTIPMSENDERDAQMODULE_HPP_
 #define IPM_TEST_PLUGINS_VECTORINTIPMSENDERDAQMODULE_HPP_
 
+#include "ipm/Sender.hpp"
+#include "ipm/vectorintipmsenderdaqmodule/Structs.hpp"
+
 #include "appfwk/DAQModule.hpp"
 #include "appfwk/DAQSource.hpp"
 #include "appfwk/ThreadHelper.hpp"
-#include "ipm/Sender.hpp"
 
-#include "ipm/vectorintipmsenderdaqmodule/Structs.hpp"
-
-#include <ers/Issue.h>
+#include "ers/Issue.h"
 
 #include <future>
 #include <memory>
@@ -50,26 +50,26 @@ public:
   VectorIntIPMSenderDAQModule& operator=(VectorIntIPMSenderDAQModule&&) =
     delete; ///< VectorIntIPMSenderDAQModule is not move-assignable
 
-  void init(const data_t& ) override;
+  void init(const data_t&) override;
 
 private:
   // Commands
-  void do_configure(const data_t& );
-  void do_start(const data_t& );
-  void do_stop(const data_t& );
+  void do_configure(const data_t&);
+  void do_start(const data_t&);
+  void do_stop(const data_t&);
 
   // Threading
   void do_work(std::atomic<bool>& running_flag);
-  appfwk::ThreadHelper thread_;
+  appfwk::ThreadHelper m_thread;
 
   // Configuration (for validation)
 
-  vectorintipmsenderdaqmodule::Conf cfg_;
-  size_t nIntsPerVector_ = 999;
-  std::chrono::milliseconds queueTimeout_;
-  std::unique_ptr<appfwk::DAQSource<std::vector<int>>> inputQueue_;
-  std::shared_ptr<Sender> output_;
-  std::string topic_{ "" };
+  vectorintipmsenderdaqmodule::Conf m_cfg;
+  size_t m_num_ints_per_vector = 999;
+  std::chrono::milliseconds m_queue_timeout;
+  std::unique_ptr<appfwk::DAQSource<std::vector<int>>> m_input_queue;
+  std::shared_ptr<Sender> m_output;
+  std::string m_topic{ "" };
 };
 
 } // namespace ipm

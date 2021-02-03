@@ -9,14 +9,14 @@
 #ifndef IPM_PLUGINS_ZMQRECEIVERIMPL_HPP_
 #define IPM_PLUGINS_ZMQRECEIVERIMPL_HPP_
 
-#include "TRACE/trace.h"
-
 #include "ipm/Subscriber.hpp"
 #include "ipm/ZmqContext.hpp"
 
+#include "TRACE/trace.h"
+#include "zmq.hpp"
+
 #include <string>
 #include <vector>
-#include <zmq.hpp>
 
 namespace dunedaq {
 namespace ipm {
@@ -32,27 +32,27 @@ public:
   };
 
   explicit ZmqReceiverImpl(ReceiverType type)
-    : socket_(ZmqContext::instance().GetContext(),
-              type == ReceiverType::Pull ? zmq::socket_type::pull : zmq::socket_type::sub)
+    : m_socket(ZmqContext::instance().GetContext(),
+               type == ReceiverType::Pull ? zmq::socket_type::pull : zmq::socket_type::sub)
   {}
-  bool can_receive() const noexcept override { return socket_connected_; }
+  bool can_receive() const noexcept override { return m_socket_connected; }
   void connect_for_receives(const nlohmann::json& connection_info) override
   {
     std::string connection_string = connection_info.value<std::string>("connection_string", "inproc://default");
     TLOG(TLVL_INFO) << "Connection String is " << connection_string;
-    socket_.setsockopt(ZMQ_RCVTIMEO, 1); // 1 ms, we'll repeat until we reach timeout
-    socket_.connect(connection_string);
-    socket_connected_ = true;
+    m_socket.setsockopt(ZMQ_RCVTIMEO, 1); // 1 ms, we'll repeat until we reach timeout
+    m_socket.connect(connection_string);
+    m_socket_connected = true;
   }
 
-  void subscribe(std::string const& topic) override { socket_.setsockopt(ZMQ_SUBSCRIBE, topic.c_str(), topic.size()); }
+  void subscribe(std::string const& topic) override { m_socket.setsockopt(ZMQ_SUBSCRIBE, topic.c_str(), topic.size()); }
   void unsubscribe(std::string const& topic) override
   {
-    socket_.setsockopt(ZMQ_UNSUBSCRIBE, topic.c_str(), topic.size());
+    m_socket.setsockopt(ZMQ_UNSUBSCRIBE, topic.c_str(), topic.size());
   }
 
 protected:
-  Receiver::Response receive_(const duration_type& timeout) override
+  Receiver::Response receive_(const duration_t& timeout) override
   {
     Receiver::Response output;
     zmq::message_t hdr, msg;
@@ -63,38 +63,38 @@ protected:
 
       try {
         TLOG(TLVL_TRACE + 3) << "Going to receive header";
-        res = socket_.recv(&hdr);
+        res = m_socket.recv(&hdr);
         TLOG(TLVL_TRACE + 3) << "Recv res=" << res << " for header (hdr.size() == " << hdr.size() << ")";
       } catch (zmq::error_t const& err) {
         // Throw ERS-ified exception
       }
       if (res > 0 || hdr.more()) {
         TLOG(TLVL_TRACE + 3) << "Going to receive data";
-        output.metadata.resize(hdr.size());
-        memcpy(&output.metadata[0], hdr.data(), hdr.size());
+        output.m_metadata.resize(hdr.size());
+        memcpy(&output.m_metadata[0], hdr.data(), hdr.size());
 
         // ZMQ guarantees that the entire message has arrived
-        res = socket_.recv(&msg);
+        res = m_socket.recv(&msg);
         TLOG(TLVL_TRACE + 3) << "Recv res=" << res << " for data (msg.size() == " << msg.size() << ")";
-        output.data.resize(msg.size());
-        memcpy(&output.data[0], msg.data(), msg.size());
+        output.m_data.resize(msg.size());
+        memcpy(&output.m_data[0], msg.data(), msg.size());
       } else {
         usleep(1000);
       }
     } while (std::chrono::steady_clock::now() - start_time < timeout && res == 0);
 
     if (res == 0) {
-        throw ReceiveTimeoutExpired(ERS_HERE, timeout.count());
+      throw ReceiveTimeoutExpired(ERS_HERE, timeout.count());
     }
 
-    TLOG(TLVL_TRACE + 2) << "Returning output with metadata size " << output.metadata.size() << " and data size "
-                    << output.data.size();
+    TLOG(TLVL_TRACE + 2) << "Returning output with metadata size " << output.m_metadata.size() << " and data size "
+                         << output.m_data.size();
     return output;
   }
 
 private:
-  zmq::socket_t socket_;
-  bool socket_connected_{ false };
+  zmq::socket_t m_socket;
+  bool m_socket_connected{ false };
 };
 
 } // namespace ipm
