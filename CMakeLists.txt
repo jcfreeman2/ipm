@@ -7,12 +7,11 @@ daq_setup_environment()
 
 find_package(appfwk REQUIRED)
 
-set(CMAKE_MODULE_PATH ${CMAKE_CURRENT_LIST_DIR}/cmake ${CMAKE_MODULE_PATH})
 find_package(cppzmq REQUIRED)
 find_package(ers REQUIRED)
 find_package(nlohmann_json REQUIRED)
 
-daq_add_library(Receiver.cpp Sender.cpp LINK_LIBRARIES appfwk::appfwk cppzmq::cppzmq)
+daq_add_library(Receiver.cpp Sender.cpp LINK_LIBRARIES appfwk::appfwk cppzmq)
 
 daq_add_plugin(ZmqSender duneIPM LINK_LIBRARIES ipm)
 daq_add_plugin(ZmqReceiver duneIPM LINK_LIBRARIES ipm)
