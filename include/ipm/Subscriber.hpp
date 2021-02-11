@@ -55,7 +55,7 @@ public:
   Subscriber& operator=(Subscriber&&) = delete;
 };
 
-std::shared_ptr<Subscriber>
+inline std::shared_ptr<Subscriber>
 make_ipm_subscriber(std::string const& plugin_name)
 {
   static cet::BasicPluginFactory bpf("duneIPM", "make");
