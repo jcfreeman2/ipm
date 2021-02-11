@@ -102,7 +102,7 @@ protected:
   virtual Response receive_(const duration_t& timeout) = 0;
 };
 
-std::shared_ptr<Receiver>
+inline std::shared_ptr<Receiver>
 make_ipm_receiver(std::string const& plugin_name)
 {
   static cet::BasicPluginFactory bpf("duneIPM", "make");
