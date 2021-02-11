@@ -109,7 +109,7 @@ protected:
   }
 };
 
-std::shared_ptr<Sender>
+inline std::shared_ptr<Sender>
 make_ipm_sender(std::string const& plugin_name)
 {
   static cet::BasicPluginFactory bpf("duneIPM", "make");
